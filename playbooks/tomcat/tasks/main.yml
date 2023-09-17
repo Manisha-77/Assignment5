@@ -1,0 +1,61 @@
+---
+# tasks file for tomcat
+- name: Update package repositories
+  command: sudo apt-get update
+
+- name: Install default JDK
+  command: sudo apt-get install default-jdk
+
+- name: Create Tomcat group
+  command: sudo groupadd tomcat
+
+- name: Create Tomcat user
+  command: sudo useradd -s /bin/false -g tomcat -d /opt/tomcat tomcat
+
+- name: Download Apache Tomcat
+  command: curl -O http://redrockdigimark.com/apachemirror/tomcat/tomcat-8/v8.5.31/bin/apache-tomcat-8.5.31.tar.gz
+
+- name: Create Tomcat directory
+  command: sudo mkdir /opt/tomcat
+
+- name: Extract Apache Tomcat
+  command: sudo tar xzvf apache-tomcat-8*tar.gz -C /opt/tomcat --strip-components=1
+
+- name: Change group ownership of Tomcat directory
+  command: sudo chgrp -R tomcat /opt/tomcat
+
+- name: Grant read permission to group for conf directory
+  command: sudo chmod -R g+r /opt/tomcat/conf
+
+- name: Grant execute permission to group for conf directory
+  command: sudo chmod g+x /opt/tomcat/conf
+
+- name: Change ownership of specified directories
+  command: sudo chown -R tomcat /opt/tomcat/webapps/ /opt/tomcat/work/ /opt/tomcat/temp/ /opt/tomcat/logs/
+
+- name: Copy systemd service unit file
+  copy:
+    src: files/tomcat.service.yml
+    dest: /etc/systemd/system/tomcat.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - Reload systemd
+
+- name: Ensure Tomcat service is enabled and started
+  systemd:
+    name: tomcat
+    enabled: yes
+    state: started
+
+- name: Reload systemd
+  command: systemctl daemon-reload
+  become: yes
+
+- name: Start Tomcat service
+  command: systemctl start tomcat
+  become: yes
+
+
+...
