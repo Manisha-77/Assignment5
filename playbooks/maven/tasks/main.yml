@@ -1,11 +1,12 @@
 ---
 # tasks file for maven
 
-- name: Install python-software-properties
-  become: yes
+- name: Install software-properties-common
   apt:
-    name: python-software-properties
-    state: present
+   name: software-properties-common
+   state: present
+  become: yes
+
 
 - name: Add the WebUpd8 Team Java PPA
   become: yes
@@ -26,15 +27,20 @@
 - name: Download Apache Maven
   become: yes
   get_url:
-    url: http://apache.mirror.digitalpacific.com.au/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz
-    dest: /home/edureka/Downloads/apache-maven-3.3.9-bin.tar.gz
+    url: https://dlcdn.apache.org/maven/maven-3/3.9.4/binaries/apache-maven-3.9.4-bin.tar.gz
+    dest: /home/edureka/Downloads/apache-maven-3.9.4-bin.tar.gz
+
 
 - name: Extract Apache Maven
   become: yes
-  command: tar -xzvf /home/edureka/Downloads/apache-maven-3.3.9-bin.tar.gz -C /opt/
+  command: tar -xzvf /home/edureka/Downloads/apache-maven-3.9.4-bin.tar.gz -C /opt/
 
 - name: Configure alternatives for Maven
-  become: yes
-  command: update-alternatives --install /usr/bin/mvn maven /opt/apache-maven-3.3.9/bin/mvn 1001
+  command: update-alternatives --install /usr/bin/mvn maven /opt/apache-maven-3.9.4/bin/mvn 1001
+  become: yes  
+
+# - name: Configure alternatives for Maven
+#   become: yes
+#  command: update-alternatives --install /usr/bin/mvn maven /opt/apache-maven-3.9.4-bin.tar.gz/bin/mvn 1001
 
 ...

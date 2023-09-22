@@ -1,2 +1,9 @@
 ---
 # handlers file for tomcat
+
+- name: Reload systemd
+  systemd:
+    name: systemd
+    state: reloaded
+  become: yes
+...

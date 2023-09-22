@@ -1,37 +1,88 @@
+
 ---
-# tasks file for tomcat
 - name: Update package repositories
-  command: sudo apt-get update
+  apt:
+    update_cache: yes
+  become: yes
 
 - name: Install default JDK
-  command: sudo apt-get install default-jdk
+  apt:
+    name: default-jdk
+    state: present
+  become: yes
 
 - name: Create Tomcat group
-  command: sudo groupadd tomcat
+  group:
+    name: tomcat
+  become: yes
 
 - name: Create Tomcat user
-  command: sudo useradd -s /bin/false -g tomcat -d /opt/tomcat tomcat
+  user:
+    name: tomcat
+    group: tomcat
+    shell: /bin/false
+    home: /opt/tomcat
+  become: yes
 
 - name: Download Apache Tomcat
-  command: curl -O http://redrockdigimark.com/apachemirror/tomcat/tomcat-8/v8.5.31/bin/apache-tomcat-8.5.31.tar.gz
+  get_url:
+    url: https://dlcdn.apache.org/tomcat/tomcat-8/v8.5.93/bin/apache-tomcat-8.5.93.tar.gz
+    dest: /tmp/apache-tomcat-8.5.31.tar.gz
+  become: yes
 
 - name: Create Tomcat directory
-  command: sudo mkdir /opt/tomcat
+  file:
+    path: /opt/tomcat
+    state: directory
+    owner: tomcat
+    group: tomcat
+  become: yes
 
 - name: Extract Apache Tomcat
-  command: sudo tar xzvf apache-tomcat-8*tar.gz -C /opt/tomcat --strip-components=1
+  unarchive:
+    src: /tmp/apache-tomcat-8.5.31.tar.gz
+    dest: /opt/tomcat
+    remote_src: yes
+    extra_opts: '--strip-components=1'
+    owner: tomcat
+    group: tomcat
+  become: yes
 
 - name: Change group ownership of Tomcat directory
-  command: sudo chgrp -R tomcat /opt/tomcat
+  file:
+    path: /opt/tomcat
+    state: directory
+    group: tomcat
+  become: yes
 
 - name: Grant read permission to group for conf directory
-  command: sudo chmod -R g+r /opt/tomcat/conf
+  file:
+    path: /opt/tomcat/conf
+    recurse: yes
+    mode: '0750'
+    group: tomcat
+  become: yes
 
 - name: Grant execute permission to group for conf directory
-  command: sudo chmod g+x /opt/tomcat/conf
+  file:
+    path: /opt/tomcat/conf
+    recurse: yes
+    mode: '0750'
+    group: tomcat
+  become: yes
 
 - name: Change ownership of specified directories
-  command: sudo chown -R tomcat /opt/tomcat/webapps/ /opt/tomcat/work/ /opt/tomcat/temp/ /opt/tomcat/logs/
+  file:
+    path: "{{ item }}"
+    recurse: yes
+    owner: tomcat
+    group: tomcat
+  loop:
+    - /opt/tomcat/webapps/
+    - /opt/tomcat/work/
+    - /opt/tomcat/temp/
+    - /opt/tomcat/logs/
+  become: yes
 
 - name: Copy systemd service unit file
   copy:
@@ -44,18 +95,16 @@
     - Reload systemd
 
 - name: Ensure Tomcat service is enabled and started
-  systemd:
-    name: tomcat
-    enabled: yes
-    state: started
+  command: /opt/tomcat/bin/startup.sh
+  become: yes
+
 
 - name: Reload systemd
   command: systemctl daemon-reload
   become: yes
 
-- name: Start Tomcat service
-  command: systemctl start tomcat
+- name: Start tomcat
+  command: /opt/tomcat/bin/startup.sh
   become: yes
-
 
 ...

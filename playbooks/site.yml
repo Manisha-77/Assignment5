@@ -1,8 +1,8 @@
 ---
--hosts:172.31.190.207 
- become: yes
- roles:
- - tomcat
- - maven
+- hosts: [kslave1]  
+  become: yes
+  roles:
+  - tomcat
+  - maven
 
 ...
